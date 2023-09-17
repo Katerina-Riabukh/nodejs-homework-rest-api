@@ -1,30 +1,23 @@
 const fs = require("fs/promises");
 const uuid = require("uuid").v4;
 const { createContactsdatavalidator } = require("../joiValidators");
+const { wraper, errorHendler } = require("../helpers");
 
-const listContacts = async (req, res, next) => {
-  try {
-    const data = await fs.readFile("./models/contacts.json");
-    const contacts = JSON.parse(data);
-    res.status(200).json({
-      message: "Success",
-      contacts,
-    });
-  } catch (error) {
-    next(error);
-  }
+const listContacts = async (req, res) => {
+  const contacts = req.contacts;
+  res.status(200).json({
+    message: "Success",
+    contacts,
+  });
 };
 
-const getContactById = async (req, res, next) => {
+const getContactById = async (req, res) => {
   const { id } = req.params;
-  const data = await fs.readFile("./models/contacts.json");
-  const contacts = JSON.parse(data);
+  const contacts = req.contacts;
   const contactById = contacts.find((contact) => contact.id === id);
 
   if (!contactById) {
-    const err = new Error("Contact does not exist");
-    err.status = 404;
-    return next(err);
+    throw errorHendler(404, "Contact does not exist");
   }
   res.status(200).json({
     message: "Success",
@@ -34,9 +27,16 @@ const getContactById = async (req, res, next) => {
 
 const removeContact = async (req, res) => {
   const { id } = req.params;
-  const data = await fs.readFile("./models/contacts.json");
-  const contacts = JSON.parse(data);
-  const newContacts = contacts.filter((contact) => contact.id !== id);
+  const contacts = req.contacts;
+
+  const deleteContact = contacts.find((contact) => contact.id === id);
+  if (!deleteContact) {
+    throw errorHendler(404, "Not found");
+  }
+
+  const newContacts = contacts.filter((contact) => {
+    return contact.id !== id;
+  });
   await fs.writeFile(
     "./models/contacts.json",
     JSON.stringify(newContacts, null, 3)
@@ -44,81 +44,69 @@ const removeContact = async (req, res) => {
 
   res.status(200).json({
     message: "Contact deleted",
+    deleteContact,
   });
 };
 
-const addContact = async (req, res, next) => {
-  try {
-    const { error, value } = createContactsdatavalidator(req.body);
+const addContact = async (req, res) => {
+  const { error, value } = createContactsdatavalidator(req.body);
 
-    if (error) {
-      const err = new Error(error.message);
-      err.status = 400;
-      return next(err);
-    }
-    const { name, email, phone } = value;
-
-    const newContact = {
-      name,
-      email,
-      phone,
-      id: uuid(),
-    };
-
-    const data = await fs.readFile("./models/contacts.json");
-    const contacts = JSON.parse(data);
-
-    contacts.push(newContact);
-
-    await fs.writeFile(
-      "./models/contacts.json",
-      JSON.stringify(contacts, null, 3)
-    );
-
-    res.status(201).json({
-      message: "Created",
-      contact: newContact,
-    });
-  } catch (error) {
-    next(error);
+  if (error) {
+    throw errorHendler(400, error.message);
   }
+  const { name, email, phone } = value;
+
+  const newContact = {
+    name,
+    email,
+    phone,
+    id: uuid(),
+  };
+  const contacts = req.contacts;
+
+  contacts.push(newContact);
+
+  await fs.writeFile(
+    "./models/contacts.json",
+    JSON.stringify(contacts, null, 3)
+  );
+
+  res.status(201).json({
+    message: "Created",
+    contact: newContact,
+  });
 };
 
-const updateContact = async (req, res, next) => {
-  try {
-    const { error, value } = createContactsdatavalidator(req.body);
+const updateContact = async (req, res) => {
+  const { error, value } = createContactsdatavalidator(req.body);
 
-    if (error) {
-      const err = new Error(error.message);
-      err.status = 400;
-      return next(err);
-    }
-
-    const { id } = req.params;
-    const data = await fs.readFile("./models/contacts.json");
-    const contacts = JSON.parse(data);
-    const index = contacts.findIndex((contact) => contact.id === id);
-    console.log(index);
-    if (index === -1) return null;
-    contacts[index] = { id, ...value };
-
-    await fs.writeFile(
-      "./models/contacts.json",
-      JSON.stringify(contacts, null, 3)
-    );
-    res.status(200).json({
-      message: "Updated successfully",
-      contacts,
-    });
-  } catch (error) {
-    next(error);
+  if (error) {
+    throw errorHendler(400, error.message);
   }
+
+  const { id } = req.params;
+  const contacts = req.contacts;
+  const index = contacts.findIndex((contact) => contact.id === id);
+  console.log(index);
+  if (index === -1) {
+    throw errorHendler(400, "Contact does not exist");
+  }
+  contacts[index] = { id, ...value };
+
+  await fs.writeFile(
+    "./models/contacts.json",
+    JSON.stringify(contacts, null, 3)
+  );
+  res.status(200).json({
+    message: "Updated successfully",
+    contacts,
+  });
 };
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
+  listContacts: wraper(listContacts),
+  getContactById: wraper(getContactById),
+  removeContact: wraper(removeContact),
+  addContact: wraper(addContact),
+  updateContact: wraper(updateContact),
 };
