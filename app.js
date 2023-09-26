@@ -1,12 +1,34 @@
 const express = require("express");
 const logger = require("morgan");
+const morgan = require("morgan");
 const cors = require("cors");
-
+const mongoose = require("mongoose");
 const contactsRouter = require("./routes/api/contacts");
+const dotenv = require("dotenv");
 
 const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+
+dotenv.config({
+  path:
+    process.env.NODE_ENV === "production"
+      ? "./environments/production.env"
+      : "./environments/development.env",
+});
+
+if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
+
+// Mongo db connection ======
+mongoose
+  .connect(process.env.MONGO_DB)
+  .then((con) => {
+    console.log("Mongo DB soccessfully connented");
+  })
+  .catch((err) => {
+    console.log(err);
+    process.exit(1);
+  });
 
 app.use(logger(formatsLogger));
 app.use(cors());
