@@ -1,5 +1,5 @@
-const userRolesEnam = require("./userRolsEnams");
+const userSubscription = require("./userSubscription");
 
 module.exports = {
-  userRolesEnam,
+  userSubscription,
 };

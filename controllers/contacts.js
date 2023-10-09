@@ -1,13 +1,14 @@
 const { wraper } = require("../helpers");
-const Contact = require("../models/contactModel");
+const { Contact } = require("../models");
+const contactServise = require("../services/contactServise");
 
 // GET:ALL
 const listContacts = async (req, res) => {
-  const contacts = await Contact.find();
+  const result = await contactServise.getListContacts(req.query, req.user);
 
   res.status(200).json({
     message: "Success",
-    contacts,
+    result,
   });
 };
 
@@ -34,12 +35,14 @@ const removeContact = async (req, res) => {
 // ADD
 const addContact = async (req, res) => {
   const { name, email, phone, favorite } = req.body;
+  const { _id: owner } = req.user;
 
   const newContact = await Contact.create({
     name,
     email,
     phone,
     favorite,
+    owner,
   });
 
   res.status(201).json({

@@ -3,8 +3,10 @@ const logger = require("morgan");
 const morgan = require("morgan");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const contactsRouter = require("./routes/api/contacts");
 const dotenv = require("dotenv");
+
+const contactsRouter = require("./routes/api/contacts");
+const userRouter = require("./routes/api/user");
 
 const app = express();
 
@@ -36,6 +38,7 @@ app.use(express.json());
 
 // ROUTES
 app.use("/api/contacts", contactsRouter);
+app.use("/api/users", userRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

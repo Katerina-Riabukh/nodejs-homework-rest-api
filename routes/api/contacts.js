@@ -1,11 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const fs = require("fs/promises");
-const { contactMiddelware } = require("../../middlewares");
-// const path = require("path");
-
-// const contactsPath = path.join(__dirname, "models", "contacts.json");
-// console.log(__dirname);
+const { contactMiddelware, authenticate } = require("../../middlewares");
 
 const {
   listContacts,
@@ -26,15 +22,15 @@ router.use(async (req, res, next) => {
 
 router
   .route("/")
-  .get(listContacts)
-  .post(contactMiddelware.checkContactData, addContact);
-router.use("/:id", contactMiddelware.checkContactId);
+  .get(authenticate, listContacts)
+  .post(authenticate, contactMiddelware.checkContactData, addContact);
+router.use("/:id", authenticate, contactMiddelware.checkContactId);
 router
   .route("/:id")
-  .get(getContactById)
-  .delete(removeContact)
-  .put(contactMiddelware.checkContactData, updateContact);
+  .get(authenticate, getContactById)
+  .delete(authenticate, removeContact)
+  .put(authenticate, contactMiddelware.checkContactData, updateContact);
 
-router.route("/:id/favorite").patch(addToFavoriteList);
+router.route("/:id/favorite").patch(authenticate, addToFavoriteList);
 
 module.exports = router;
