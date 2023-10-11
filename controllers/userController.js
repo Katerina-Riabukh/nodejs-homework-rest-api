@@ -48,10 +48,20 @@ const update = wraper(async (req, res) => {
   });
 });
 
+const updateUser = wraper(async (req, res) => {
+  const result = await userService.updateUserData(req.body, req.user, req.file);
+
+  res.status(200).json({
+    message: "Success",
+    result,
+  });
+});
+
 module.exports = {
   registration,
   login,
   logout,
   current,
   update,
+  updateUser,
 };
