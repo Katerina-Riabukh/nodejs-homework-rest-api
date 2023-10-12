@@ -1,6 +1,6 @@
 const multer = require("multer");
-const sharp = require("sharp");
-// const jimp = require("jimp");
+// const sharp = require("sharp");
+const jimp = require("jimp");
 const path = require("path");
 const uuid = require("uuid").v4;
 const fse = require("fs-extra");
@@ -33,11 +33,15 @@ class AvatarServise {
     const fullFilePath = path.join(process.cwd(), "public", ...pathSegments);
 
     await fse.ensureDir("fullFilePath");
-    await sharp(file.buffer)
-      .resize({ height: options?.height || 300, width: options?.width || 300 })
-      .toFormat("jpeg")
-      .jpeg({ quality: 90 })
-      .toFile(path.join(fullFilePath, fileName));
+
+    const image = await jimp.read(file.buffer);
+    await image.resize(250, 250);
+    await image.writeAsync(path.join(fullFilePath, fileName));
+    // await sharp(file.buffer)
+    //   .resize({ height: options?.height || 300, width: options?.width || 300 })
+    //   .toFormat("jpeg")
+    //   .jpeg({ quality: 90 })
+    //   .toFile(path.join(fullFilePath, fileName));
 
     return path.join(...pathSegments, fileName);
   }

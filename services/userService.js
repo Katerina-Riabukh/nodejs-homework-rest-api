@@ -46,7 +46,6 @@ exports.updateSubscription = async (id, userData) => {
 };
 
 exports.updateUserData = async (userData, user, file) => {
-  console.log(userData, user, file);
   if (file) {
     // user.avatarURL = file.path.replace("pablic", "");
     user.avatarURL = await AvatarServise.save(file, null, "avatar");
