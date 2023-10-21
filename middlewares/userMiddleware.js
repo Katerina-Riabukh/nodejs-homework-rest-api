@@ -5,6 +5,7 @@ const { checkUserExists } = require("../services/userService");
 const {
   createUserDataValidator,
   loginUserDataValidator,
+  emailVerifyValidator,
 } = require("../validation/joiValidators");
 const AvatarServise = require("../services/avatarServise");
 
@@ -27,6 +28,16 @@ exports.checkLoginUserData = wraper(async (req, res, next) => {
 
   if (error) {
     throw errorHendler(401, "Something wrong...");
+  }
+
+  next();
+});
+
+exports.checkEmailVerify = wraper(async (req, res, next) => {
+  const { error } = emailVerifyValidator(req.body);
+
+  if (error) {
+    throw errorHendler(400, "Something wrong...");
   }
 
   next();

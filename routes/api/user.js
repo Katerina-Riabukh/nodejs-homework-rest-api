@@ -9,7 +9,10 @@ const {
   current,
   update,
   updateUser,
+  verify,
+  verifyResend,
 } = require("../../controllers/userController");
+
 // const { uploadUserAvatar } = require("../../middlewares/userMiddleware");
 
 const router = Router();
@@ -25,5 +28,7 @@ router.patch(
   userMiddlevare.uploadUserAvatar,
   updateUser
 );
+router.get("/verify/:verificationToken", verify);
+router.post("/verify", userMiddlevare.checkEmailVerify, verifyResend);
 
 module.exports = router;

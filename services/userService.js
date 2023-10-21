@@ -2,9 +2,12 @@ const User = require("../models/userModel");
 const { errorHendler } = require("../helpers");
 const { signToken } = require("./jwtService");
 const AvatarServise = require("./avatarServise");
+const uuid = require("uuid").v4;
 
 exports.registerUser = async (userData) => {
-  const newUser = await User.create(userData);
+  const verificationToken = uuid();
+
+  const newUser = await User.create({ ...userData, verificationToken });
 
   newUser.password = undefined;
 
@@ -18,6 +21,7 @@ exports.loginUser = async (userData) => {
     "+password"
   );
   if (!user) throw errorHendler(401, "Email or password is wrong.");
+  if (!user.verify) throw errorHendler(404, "Email is not verified");
 
   const passwordIsValid = await user.checkPassword(
     userData.password,
@@ -55,6 +59,28 @@ exports.updateUserData = async (userData, user, file) => {
   });
 
   return user.save();
+};
+
+exports.verifyUser = async (verificationToken) => {
+  const user = await User.findOne({ verificationToken });
+
+  if (!user) throw errorHendler(404, "Not found");
+
+  const verifyUser = await User.findByIdAndUpdate(user.id, {
+    verify: true,
+    verificationToken: "",
+  });
+  return verifyUser;
+};
+
+exports.emailVerifyResend = async (email) => {
+  const user = await User.findOne({ email });
+  console.log(user);
+
+  if (!user) throw errorHendler(404, "Not found");
+  if (user.verify) throw errorHendler(400, "Email has alresdy been verified");
+
+  return user;
 };
 
 exports.checkUserExists = async (filter) => {

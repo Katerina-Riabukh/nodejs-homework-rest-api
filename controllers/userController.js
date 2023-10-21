@@ -1,8 +1,20 @@
 const { wraper } = require("../helpers");
+const Email = require("../services/emailService");
 const userService = require("../services/userService");
+
+// const { BASE_URL } = process.env;
 
 const registration = wraper(async (req, res) => {
   const { user, token } = await userService.registerUser(req.body);
+
+  try {
+    await new Email(
+      user,
+      `http://localhost:3000/api/users/verify/${user.verificationToken}`
+    ).sendHello();
+  } catch (error) {
+    console.log(error);
+  }
 
   res.status(201).json({
     message: "Created",
@@ -57,6 +69,34 @@ const updateUser = wraper(async (req, res) => {
   });
 });
 
+const verify = wraper(async (req, res) => {
+  const { verificationToken } = req.params;
+
+  await userService.verifyUser(verificationToken);
+
+  res.status(200).json({
+    message: "Verification successful",
+  });
+});
+
+const verifyResend = wraper(async (req, res) => {
+  const { email } = req.body;
+  const user = await userService.emailVerifyResend(email);
+
+  try {
+    await new Email(
+      user,
+      `http://localhost:3000/api/users/verify/${user.verificationToken}`
+    ).sendHello();
+  } catch (error) {
+    console.log(error);
+  }
+
+  res.status(200).json({
+    message: "Verification email sent",
+  });
+});
+
 module.exports = {
   registration,
   login,
@@ -64,4 +104,6 @@ module.exports = {
   current,
   update,
   updateUser,
+  verify,
+  verifyResend,
 };

@@ -17,10 +17,13 @@ exports.createUserDataValidator = (data) =>
   Joi.object()
     .options({ abortEarly: false })
     .keys({
+      name: Joi.string().min(3).max(30).required(),
       password: Joi.string().min(6).required(),
       email: Joi.string().required(),
       subscription: Joi.string(),
       token: Joi.string(),
+      verificationToken: Joi.string(),
+      verify: Joi.boolean(),
     })
     .validate(data);
 
@@ -32,3 +35,8 @@ exports.loginUserDataValidator = (data) =>
       email: Joi.string().required(),
     })
     .validate(data);
+
+exports.emailVerifyValidator = (data) =>
+  Joi.object({
+    email: Joi.string().required(),
+  }).validate(data);
