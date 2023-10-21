@@ -75,7 +75,6 @@ exports.verifyUser = async (verificationToken) => {
 
 exports.emailVerifyResend = async (email) => {
   const user = await User.findOne({ email });
-  console.log(user);
 
   if (!user) throw errorHendler(404, "Not found");
   if (user.verify) throw errorHendler(400, "Email has alresdy been verified");
