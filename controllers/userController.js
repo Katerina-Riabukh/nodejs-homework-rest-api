@@ -1,6 +1,7 @@
 const { wraper } = require("../helpers");
 const Email = require("../services/emailService");
 const userService = require("../services/userService");
+require("dotenv").config();
 
 // const { BASE_URL } = process.env;
 
